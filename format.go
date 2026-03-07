@@ -41,6 +41,9 @@ func humanTokens(n int) string {
 		if f == float64(int(f)) {
 			return fmt.Sprintf("%dk", int(f))
 		}
+		if n < 10_000 {
+			return fmt.Sprintf("%.1fk", f)
+		}
 		return fmt.Sprintf("%.0fk", f)
 	default:
 		return strconv.Itoa(n)

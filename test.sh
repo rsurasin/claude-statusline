@@ -82,7 +82,7 @@ write_usage_cache 10 43
 divider
 echo "Test 1: Full payload"
 echo "Expected L1: Opus 4.6 | @code-reviewer | Refactor auth module | [think/effort from your settings] | repo:branch +N/-N"
-echo "Expected L2: 43k/200k 42% | 5h ●○○○○ 10% (3h 29m) | 7d ●●○○○ 43% (2d 22h)"
+echo "Expected L2: 85k/200k 42% | 5h ●○○○○ 10% (3h 29m) | 7d ●●○○○ 43% (2d 22h)"
 echo ""
 echo '
 {
@@ -107,7 +107,7 @@ write_usage_cache 5 12
 divider
 echo "Test 2: Minimal (no agent, no session name)"
 echo "Expected L1: Sonnet 4.6 | [think/effort if configured] | repo:branch"
-echo "Expected L2: 3k/200k 8% | 5h ○○○○○ 5% (...) | 7d ●○○○○ 12% (...)"
+echo "Expected L2: 4.6k/200k 2% | 5h ○○○○○ 5% (...) | 7d ●○○○○ 12% (...)"
 echo ""
 echo '
 {
@@ -115,9 +115,9 @@ echo '
   "workspace": { "current_dir": "'"$(pwd)"'" },
   "context_window": {
     "total_input_tokens": 3200,
-    "total_output_tokens": 800,
+    "total_output_tokens": 1400,
     "context_window_size": 200000,
-    "used_percentage": 8.2
+    "used_percentage": 2.3
   }
 }
 ' | $BIN
