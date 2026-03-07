@@ -1,7 +1,7 @@
 BINARY    := claude-statusline
 INSTALL   := $(HOME)/.claude/$(BINARY)
 
-.PHONY: build fmt vet install test clean
+.PHONY: build fmt vet install test coverage clean
 
 build:
 	go build -ldflags="-s -w" -o $(BINARY) .
@@ -31,6 +31,11 @@ test: build
 	go test -v -count=1 -cover ./...
 	./test.sh
 
+coverage:
+	go test -coverprofile=cover.out ./...
+	go tool cover -html=cover.out -o cover.html
+	@echo "Coverage report: cover.html"
+
 clean:
 	rm -f $(BINARY)
-	rm -f cover.out
+	rm -f cover.out cover.html
