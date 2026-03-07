@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -59,14 +60,43 @@ func lookupSessionName(in *StatusInput) string {
 		jsonlPath = filepath.Join(claudeConfigDir(), "projects", hash, in.SessionID+".jsonl")
 	}
 
-	data, err := os.ReadFile(jsonlPath)
+	f, err := os.Open(jsonlPath)
+	if err != nil {
+		return ""
+	}
+	defer f.Close()
+
+	// Tail-read: seek to last ~16KB for performance on large JSONL files.
+	const tailSize = 16384
+	info, err := f.Stat()
+	if err != nil {
+		return ""
+	}
+	offset := info.Size() - tailSize
+	if offset < 0 {
+		offset = 0
+	}
+	if offset > 0 {
+		if _, err := f.Seek(offset, io.SeekStart); err != nil {
+			return ""
+		}
+	}
+
+	data, err := io.ReadAll(f)
 	if err != nil {
 		return ""
 	}
 
-	var lastTitle string
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
+	lines := strings.Split(string(data), "\n")
+
+	// If we seeked into the middle, discard the first (partial) line.
+	if offset > 0 && len(lines) > 0 {
+		lines = lines[1:]
+	}
+
+	// Walk backwards to find the most recent "custom-title" entry.
+	for i := len(lines) - 1; i >= 0; i-- {
+		line := strings.TrimSpace(lines[i])
 		if line == "" || !strings.Contains(line, `"custom-title"`) {
 			continue
 		}
@@ -75,8 +105,8 @@ func lookupSessionName(in *StatusInput) string {
 			continue
 		}
 		if entry.Type == "custom-title" && entry.CustomTitle != "" {
-			lastTitle = entry.CustomTitle
+			return entry.CustomTitle
 		}
 	}
-	return lastTitle
+	return ""
 }
