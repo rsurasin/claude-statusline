@@ -80,6 +80,11 @@ func fetchUsageCached() *UsageResponse {
 
 	usage, _ := fetchUsageAPI(token)
 	if usage == nil {
+		if staleData != nil {
+			debugf("usage: API failed, serving stale cached data")
+		} else {
+			debugf("usage: API failed, no cached data to fall back on")
+		}
 		// API failed — write negative/stale cache to avoid hammering.
 		negCache := UsageCache{FetchedAt: time.Now().Unix(), Data: staleData}
 		if data, err := json.Marshal(&negCache); err == nil {
