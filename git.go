@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // gitSegment returns the git status segment: repo:branch +added/-removed.
@@ -50,8 +51,15 @@ func gitSegment(cwd string) string {
 
 // diffStats returns the total lines added and removed (staged + unstaged).
 func diffStats(cwd string) (added, removed int) {
-	a1, r1 := parseDiffNumstat(cwd, "diff", "--numstat")
-	a2, r2 := parseDiffNumstat(cwd, "diff", "--cached", "--numstat")
+	var a1, r1, a2, r2 int
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		a2, r2 = parseDiffNumstat(cwd, "diff", "--cached", "--numstat")
+	}()
+	a1, r1 = parseDiffNumstat(cwd, "diff", "--numstat")
+	wg.Wait()
 	return a1 + a2, r1 + r2
 }
 
