@@ -72,7 +72,7 @@ func lookupThinkingCached(in *StatusInput) (on bool, ok bool) {
 		ThinkOn:   thinkOn,
 	}
 	if data, err := json.Marshal(&cache); err == nil {
-		_ = os.WriteFile(cacheFile, data, 0600)
+		_ = atomicWriteFile(cacheFile, data, 0600)
 	}
 
 	return thinkOn, true

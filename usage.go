@@ -84,7 +84,7 @@ func fetchUsageCached() *UsageResponse {
 		// API failed — write negative/stale cache to avoid hammering.
 		negCache := UsageCache{FetchedAt: time.Now().Unix(), Data: staleData}
 		if data, err := json.Marshal(&negCache); err == nil {
-			_ = os.WriteFile(cacheFile, data, 0600)
+			_ = atomicWriteFile(cacheFile, data, 0600)
 		}
 		return staleData
 	}
@@ -94,7 +94,7 @@ func fetchUsageCached() *UsageResponse {
 		Data:      usage,
 	}
 	if data, err := json.Marshal(&cache); err == nil {
-		_ = os.WriteFile(cacheFile, data, 0600)
+		_ = atomicWriteFile(cacheFile, data, 0600)
 	}
 
 	return usage
