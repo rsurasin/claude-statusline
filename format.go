@@ -32,7 +32,13 @@ func contextSegment(ctx *ContextWindow) string {
 		color+bold, pct, reset)
 }
 
-// humanTokens formats a token count as "43k", "1.2m", etc.
+// humanTokens formats a token count as a compact, human-friendly string.
+// Uses one decimal place for sub-10k values to preserve precision:
+//
+//	1500  → "1.5k"  (not "2k" — avoids rounding up)
+//	1300  → "1.3k"  (not "1k" — avoids rounding down)
+//	43000 → "43k"   (≥10k: no decimal, rounded to nearest k)
+//	1500000 → "1.5m"
 func humanTokens(n int) string {
 	switch {
 	case n >= 1_000_000:
@@ -67,7 +73,15 @@ func usageBucketSegment(label string, bucket *UsageBucket, weekly bool, fillColo
 		pctColor = yellow
 	}
 
-	// 5 circles: each represents 20%.
+	// 5 circles: each represents 20%. Adding 10 before dividing rounds to
+	// the nearest circle rather than truncating:
+	//
+	//	 0–10%  → ○○○○○  (0 filled)
+	//	11–30%  → ●○○○○  (1 filled)
+	//	31–50%  → ●●○○○  (2 filled)
+	//	51–70%  → ●●●○○  (3 filled)
+	//	71–90%  → ●●●●○  (4 filled)
+	//	91–100% → ●●●●●  (5 filled)
 	filled := (pct + 10) / 20
 	if filled > 5 {
 		filled = 5
