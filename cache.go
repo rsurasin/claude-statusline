@@ -1,9 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 )
+
+var debugMode = os.Getenv("CLAUDE_STATUSLINE_DEBUG") != ""
+
+// debugf logs to stderr only when CLAUDE_STATUSLINE_DEBUG is set.
+func debugf(format string, args ...any) {
+	if debugMode {
+		fmt.Fprintf(os.Stderr, "statusline: "+format+"\n", args...)
+	}
+}
 
 const (
 	// usageCacheTTL is how long the usage API response is cached (seconds).

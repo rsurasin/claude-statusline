@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -105,7 +104,7 @@ func fetchUsageCached() *UsageResponse {
 func fetchUsageAPI(token string) (*UsageResponse, int) {
 	req, err := http.NewRequest("GET", "https://api.anthropic.com/api/oauth/usage", nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "statusline: usage: request error: %v\n", err)
+		debugf("usage: request error: %v", err)
 		return nil, 0
 	}
 
@@ -118,25 +117,25 @@ func fetchUsageAPI(token string) (*UsageResponse, int) {
 	client := &http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "statusline: usage: fetch error: %v\n", err)
+		debugf("usage: fetch error: %v", err)
 		return nil, 0
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		fmt.Fprintf(os.Stderr, "statusline: usage: HTTP %d\n", resp.StatusCode)
+		debugf("usage: HTTP %d", resp.StatusCode)
 		return nil, resp.StatusCode
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "statusline: usage: body read error: %v\n", err)
+		debugf("usage: body read error: %v", err)
 		return nil, resp.StatusCode
 	}
 
 	var usage UsageResponse
 	if err := json.Unmarshal(body, &usage); err != nil {
-		fmt.Fprintf(os.Stderr, "statusline: usage: json error: %v\nbody: %s\n", err, body)
+		debugf("usage: json error: %v\nbody: %s", err, body)
 		return nil, resp.StatusCode
 	}
 	return &usage, resp.StatusCode
@@ -163,6 +162,6 @@ func getOAuthToken() string {
 		return creds.ClaudeAiOauth.AccessToken
 	}
 
-	fmt.Fprintln(os.Stderr, "statusline: usage: no OAuth token found")
+	debugf("usage: no OAuth token found")
 	return ""
 }
