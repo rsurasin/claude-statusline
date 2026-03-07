@@ -39,8 +39,8 @@
             go version
             echo ""
             echo "make commands for claude-statusline:"
-            echo "  make build       - Builds claude-statuline binary in working dir"
-            echo "  make install     - Runs build first, then copies binary to ~/.claude/claude-statuline"
+            echo "  make build       - Builds claude-statusline binary in working dir"
+            echo "  make install     - Runs build first, then copies binary to ~/.claude/claude-statusline"
             echo "  make test        - Runs build first, then executes test.sh"
             echo "  make clean       - Deletes the compiled binary from working dir"
             echo ""
