@@ -1,10 +1,16 @@
 BINARY    := claude-statusline
 INSTALL   := $(HOME)/.claude/$(BINARY)
 
-.PHONY: build install test clean
+.PHONY: build fmt vet install test clean
 
 build:
 	go build -ldflags="-s -w" -o $(BINARY) .
+
+fmt:
+	go fmt ./...
+
+vet:
+	go vet ./...
 
 install: build
 	mkdir -p $(HOME)/.claude
