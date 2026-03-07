@@ -10,6 +10,11 @@ import (
 
 // contextSegment renders the context window segment: "43k/200k 42%".
 func contextSegment(ctx *ContextWindow) string {
+	// Derive used tokens from UsedPercentage × window size rather than summing
+	// TotalInputTokens + TotalOutputTokens. Claude Code's UsedPercentage includes
+	// cache tokens and other overhead not reflected in the raw I/O counts, so the
+	// percentage is the authoritative source. Deriving both values from it keeps
+	// the displayed "Nk/Nk N%" self-consistent.
 	used := int(float64(ctx.ContextWindowSize) * ctx.UsedPercentage / 100)
 	total := ctx.ContextWindowSize
 	pct := int(ctx.UsedPercentage)
