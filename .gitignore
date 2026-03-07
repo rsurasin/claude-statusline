@@ -1,0 +1,2 @@
+# For when we build the binary and forget to run `make clean`
+claude-statusline

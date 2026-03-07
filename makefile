@@ -1,0 +1,28 @@
+BINARY    := claude-statusline
+INSTALL   := $(HOME)/.claude/$(BINARY)
+
+.PHONY: build install test clean
+
+build:
+	go build -ldflags="-s -w" -o $(BINARY) .
+
+install: build
+	mkdir -p $(HOME)/.claude
+	cp $(BINARY) $(INSTALL)
+	chmod +x $(INSTALL)
+	@echo ""
+	@echo "Installed to $(INSTALL)"
+	@echo ""
+	@echo "Add this to ~/.claude/settings.json:"
+	@echo '  {'
+	@echo '    "statusLine": {'
+	@echo '      "type": "command",'
+	@echo '      "command": "$(INSTALL)"'
+	@echo '    }'
+	@echo '  }'
+
+test: build
+	./test.sh
+
+clean:
+	rm -f $(BINARY)
