@@ -18,10 +18,11 @@ func debugf(format string, args ...any) {
 const (
 	// usageCacheTTL is how long the usage API response is cached (seconds).
 	usageCacheTTL = 60
-
-	// cacheDir is the directory for all statusline temp/cache files.
-	cacheDir = "/tmp/claude-statusline"
 )
+
+// cacheDir is the directory for all statusline temp/cache files.
+// It is a var so tests can override it with t.TempDir().
+var cacheDir = "/tmp/claude-statusline"
 
 // ensureCacheDir creates the cache directory if it doesn't exist.
 func ensureCacheDir() {

@@ -28,7 +28,9 @@ install: build
 	@echo '  }'
 
 test: build
+	go test -v -count=1 -cover ./...
 	./test.sh
 
 clean:
 	rm -f $(BINARY)
+	rm -f cover.out

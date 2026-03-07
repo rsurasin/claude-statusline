@@ -99,10 +99,14 @@ func fetchUsageCached() *UsageResponse {
 	return usage
 }
 
+// usageAPIURL is the endpoint for the Anthropic usage API.
+// It is a var so tests can override it with an httptest server URL.
+var usageAPIURL = "https://api.anthropic.com/api/oauth/usage"
+
 // fetchUsageAPI calls the Anthropic usage API and returns the response
 // along with the HTTP status code. Returns (nil, statusCode) on failure.
 func fetchUsageAPI(token string) (*UsageResponse, int) {
-	req, err := http.NewRequest("GET", "https://api.anthropic.com/api/oauth/usage", nil)
+	req, err := http.NewRequest("GET", usageAPIURL, nil)
 	if err != nil {
 		debugf("usage: request error: %v", err)
 		return nil, 0

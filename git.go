@@ -63,9 +63,9 @@ func diffStats(cwd string) (added, removed int) {
 	return a1 + a2, r1 + r2
 }
 
-// parseDiffNumstat runs git diff --numstat and sums the added/removed lines.
-func parseDiffNumstat(cwd string, args ...string) (added, removed int) {
-	out := gitCmd(cwd, args...)
+// parseDiffOutput parses the output of git diff --numstat and sums the
+// added/removed lines. Extracted from parseDiffNumstat for testability.
+func parseDiffOutput(out string) (added, removed int) {
 	if out == "" {
 		return 0, 0
 	}
@@ -82,6 +82,11 @@ func parseDiffNumstat(cwd string, args ...string) (added, removed int) {
 		}
 	}
 	return
+}
+
+// parseDiffNumstat runs git diff --numstat and sums the added/removed lines.
+func parseDiffNumstat(cwd string, args ...string) (added, removed int) {
+	return parseDiffOutput(gitCmd(cwd, args...))
 }
 
 // gitCmd runs a git command in the given directory and returns trimmed stdout.
