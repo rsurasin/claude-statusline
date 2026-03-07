@@ -128,7 +128,7 @@ echo ""
 # ---------------------------------------------------------------------------
 write_usage_cache 85 72
 divider
-echo "Test 3: High usage — context 85% (red), 5h 85% ●●●●○ (red), 7d 72% ●●●○○ (yellow)"
+echo "Test 3: High usage — context 85% (red), 5h 85% ●●●●○ (red), 7d 72% ●●●●○ (yellow)"
 echo ""
 echo '
 {
@@ -171,7 +171,7 @@ echo ""
 # ---------------------------------------------------------------------------
 write_usage_cache 50 30
 divider
-echo "Test 5: Mid-range — 5h ●●○○○ 50% (yellow), 7d ●○○○○ 30% (green)"
+echo "Test 5: Mid-range — 5h ●●●○○ 50% (yellow), 7d ●●○○○ 30% (green)"
 echo ""
 echo '
 {

@@ -63,7 +63,7 @@ func usageBucketSegment(label string, bucket *UsageBucket, weekly bool, fillColo
 	}
 
 	// 5 circles: each represents 20%.
-	filled := pct / 20
+	filled := (pct + 10) / 20
 	if filled > 5 {
 		filled = 5
 	}
