@@ -113,7 +113,7 @@ type JournalEntry struct {
 // ThinkingMetadata holds thinking mode state from a user message entry.
 type ThinkingMetadata struct {
 	MaxThinkingTokens int   `json:"maxThinkingTokens"` // newer format (v2.1.37+)
-	Disabled          *bool `json:"disabled"`           // older format (v2.1.17)
+	Disabled          *bool `json:"disabled"`          // older format (v2.1.17)
 }
 
 // ThinkingCache is the file-based cache for the thinking mode lookup.
