@@ -26,7 +26,7 @@ import (
 const (
 	reset   = "\033[0m"
 	bold    = "\033[1m"
-	dim     = "\033[90m"
+	dim     = "\033[90m" // gray, not actual dim — plays well with terminal and tmux colors
 	red     = "\033[31m"
 	green   = "\033[32m"
 	yellow  = "\033[33m"
