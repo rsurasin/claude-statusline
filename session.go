@@ -100,6 +100,7 @@ func lookupSessionName(in *StatusInput) string {
 		if line == "" || !strings.Contains(line, `"custom-title"`) {
 			continue
 		}
+		// JournalEntry is defined in thinking.go.
 		var entry JournalEntry
 		if json.Unmarshal([]byte(line), &entry) != nil {
 			continue
