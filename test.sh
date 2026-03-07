@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 # test.sh — Pipe mock Claude Code JSON into the statusline binary.
 # We also inject a fake usage cache to test 5h/7d circle rendering.
+#
+# NOTE on token display: The statusline derives the displayed token count from
+# used_percentage × context_window_size, NOT from total_input_tokens +
+# total_output_tokens. Claude Code's used_percentage includes cache tokens and
+# other overhead not reflected in raw I/O counts, so the percentage is treated
+# as the authoritative source. This keeps the displayed "Nk/Nk N%" consistent.
+# When writing tests, set used_percentage to the value you want displayed —
+# the raw token fields don't affect the rendered output.
 set -euo pipefail
 
 BIN="./claude-statusline"
@@ -25,6 +33,22 @@ mkdir -p "$CACHE_DIR"
 divider() {
     printf '\n%s\n' "────────────────────────────────────────────────────────"
 }
+
+# assert_contains OUTPUT EXPECTED_SUBSTRING TEST_NAME
+assert_contains() {
+    local output="$1" expected="$2" label="$3"
+    # Strip ANSI codes for comparison
+    local plain
+    plain=$(echo "$output" | sed 's/\x1b\[[0-9;]*m//g')
+    if [[ "$plain" != *"$expected"* ]]; then
+        echo "FAIL: $label"
+        echo "  Expected to contain: $expected"
+        echo "  Got: $plain"
+        FAILURES=$((FAILURES + 1))
+    fi
+}
+
+FAILURES=0
 
 # ---------------------------------------------------------------------------
 # Helper: write a fake usage cache so 5h/7d circles render in tests
@@ -84,7 +108,7 @@ echo "Test 1: Full payload"
 echo "Expected L1: Opus 4.6 | @code-reviewer | Refactor auth module | [think/effort from your settings] | repo:branch +N/-N"
 echo "Expected L2: 85k/200k 42% | 5h ●○○○○ 10% (3h 29m) | 7d ●●○○○ 43% (2d 22h)"
 echo ""
-echo '
+OUTPUT=$(echo '
 {
   "session_name": "Refactor auth module",
   "model": { "display_name": "Opus 4.6" },
@@ -97,7 +121,17 @@ echo '
     "used_percentage": 42.5
   }
 }
-' | $BIN
+' | $BIN)
+echo "$OUTPUT"
+assert_contains "$OUTPUT" "Opus 4.6" "Test 1: model name"
+assert_contains "$OUTPUT" "@code-reviewer" "Test 1: agent"
+assert_contains "$OUTPUT" "Refactor auth module" "Test 1: session name"
+assert_contains "$OUTPUT" "85k/200k" "Test 1: context tokens"
+assert_contains "$OUTPUT" "42%" "Test 1: context percentage"
+assert_contains "$OUTPUT" "5h" "Test 1: 5h bucket label"
+assert_contains "$OUTPUT" "10%" "Test 1: 5h percentage"
+assert_contains "$OUTPUT" "7d" "Test 1: 7d bucket label"
+assert_contains "$OUTPUT" "43%" "Test 1: 7d percentage"
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -109,7 +143,7 @@ echo "Test 2: Minimal (no agent, no session name)"
 echo "Expected L1: Sonnet 4.6 | [think/effort if configured] | repo:branch"
 echo "Expected L2: 4.6k/200k 2% | 5h ○○○○○ 5% (...) | 7d ●○○○○ 12% (...)"
 echo ""
-echo '
+OUTPUT=$(echo '
 {
   "model": { "display_name": "Sonnet 4.6" },
   "workspace": { "current_dir": "'"$(pwd)"'" },
@@ -120,7 +154,15 @@ echo '
     "used_percentage": 2.3
   }
 }
-' | $BIN
+' | $BIN)
+echo "$OUTPUT"
+assert_contains "$OUTPUT" "Sonnet 4.6" "Test 2: model name"
+assert_contains "$OUTPUT" "4.6k/200k" "Test 2: context tokens"
+assert_contains "$OUTPUT" "2%" "Test 2: context percentage"
+assert_contains "$OUTPUT" "5h" "Test 2: 5h bucket label"
+assert_contains "$OUTPUT" "5%" "Test 2: 5h percentage"
+assert_contains "$OUTPUT" "7d" "Test 2: 7d bucket label"
+assert_contains "$OUTPUT" "12%" "Test 2: 7d percentage"
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -130,7 +172,7 @@ write_usage_cache 85 72
 divider
 echo "Test 3: High usage — context 85% (red), 5h 85% ●●●●○ (red), 7d 72% ●●●●○ (yellow)"
 echo ""
-echo '
+OUTPUT=$(echo '
 {
   "model": { "display_name": "Opus 4.6" },
   "session_name": "Debug payment flow",
@@ -142,7 +184,15 @@ echo '
     "used_percentage": 85.0
   }
 }
-' | $BIN
+' | $BIN)
+echo "$OUTPUT"
+assert_contains "$OUTPUT" "Opus 4.6" "Test 3: model name"
+assert_contains "$OUTPUT" "Debug payment flow" "Test 3: session name"
+assert_contains "$OUTPUT" "170k/200k" "Test 3: context tokens"
+assert_contains "$OUTPUT" "85%" "Test 3: context percentage"
+assert_contains "$OUTPUT" "5h" "Test 3: 5h bucket label"
+assert_contains "$OUTPUT" "7d" "Test 3: 7d bucket label"
+assert_contains "$OUTPUT" "72%" "Test 3: 7d percentage"
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -152,7 +202,7 @@ write_usage_cache 100 100
 divider
 echo "Test 4: Maxed out — 5h ●●●●● 100% (red), 7d ●●●●● 100% (red)"
 echo ""
-echo '
+OUTPUT=$(echo '
 {
   "model": { "display_name": "Sonnet 4.6" },
   "workspace": { "current_dir": "/tmp" },
@@ -163,7 +213,14 @@ echo '
     "used_percentage": 62.0
   }
 }
-' | $BIN
+' | $BIN)
+echo "$OUTPUT"
+assert_contains "$OUTPUT" "Sonnet 4.6" "Test 4: model name"
+assert_contains "$OUTPUT" "124k/200k" "Test 4: context tokens"
+assert_contains "$OUTPUT" "62%" "Test 4: context percentage"
+assert_contains "$OUTPUT" "5h" "Test 4: 5h bucket label"
+assert_contains "$OUTPUT" "100%" "Test 4: 5h percentage"
+assert_contains "$OUTPUT" "7d" "Test 4: 7d bucket label"
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -173,7 +230,7 @@ write_usage_cache 50 30
 divider
 echo "Test 5: Mid-range — 5h ●●●○○ 50% (yellow), 7d ●●○○○ 30% (green)"
 echo ""
-echo '
+OUTPUT=$(echo '
 {
   "model": { "display_name": "Opus 4.6" },
   "workspace": { "current_dir": "'"$(pwd)"'" },
@@ -184,17 +241,27 @@ echo '
     "used_percentage": 30.0
   }
 }
-' | $BIN
+' | $BIN)
+echo "$OUTPUT"
+assert_contains "$OUTPUT" "Opus 4.6" "Test 5: model name"
+assert_contains "$OUTPUT" "60k/200k" "Test 5: context tokens"
+assert_contains "$OUTPUT" "30%" "Test 5: context percentage"
+assert_contains "$OUTPUT" "5h" "Test 5: 5h bucket label"
+assert_contains "$OUTPUT" "50%" "Test 5: 5h percentage"
+assert_contains "$OUTPUT" "7d" "Test 5: 7d bucket label"
 echo ""
 
 # ---------------------------------------------------------------------------
 # Test 6: Non-git directory
+# Note: raw tokens (500+100=600) don't match displayed "3k/200k" because
+# the display is derived from used_percentage (1.5% × 200k = 3000). See the
+# header comment for details.
 # ---------------------------------------------------------------------------
 write_usage_cache 20 10
 divider
 echo "Test 6: Non-git directory (/tmp) — no git segment on line 1"
 echo ""
-echo '
+OUTPUT=$(echo '
 {
   "model": { "display_name": "Haiku 4.5" },
   "workspace": { "current_dir": "/tmp" },
@@ -205,7 +272,14 @@ echo '
     "used_percentage": 1.5
   }
 }
-' | $BIN
+' | $BIN)
+echo "$OUTPUT"
+assert_contains "$OUTPUT" "Haiku 4.5" "Test 6: model name"
+assert_contains "$OUTPUT" "3k/200k" "Test 6: context tokens"
+assert_contains "$OUTPUT" "1%" "Test 6: context percentage"
+assert_contains "$OUTPUT" "5h" "Test 6: 5h bucket label"
+assert_contains "$OUTPUT" "20%" "Test 6: 5h percentage"
+assert_contains "$OUTPUT" "7d" "Test 6: 7d bucket label"
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -215,7 +289,7 @@ write_usage_cache 90 65 true 1200 5000
 divider
 echo "Test 7: Extra credit active — extra \$12/\$50 (green), 5h 90% (red), 7d 65% (yellow)"
 echo ""
-echo '
+OUTPUT=$(echo '
 {
   "model": { "display_name": "Opus 4.6" },
   "session_name": "Long refactor session",
@@ -227,7 +301,17 @@ echo '
     "used_percentage": 90.0
   }
 }
-' | $BIN
+' | $BIN)
+echo "$OUTPUT"
+assert_contains "$OUTPUT" "Opus 4.6" "Test 7: model name"
+assert_contains "$OUTPUT" "Long refactor session" "Test 7: session name"
+assert_contains "$OUTPUT" "180k/200k" "Test 7: context tokens"
+assert_contains "$OUTPUT" "90%" "Test 7: context percentage"
+assert_contains "$OUTPUT" "5h" "Test 7: 5h bucket label"
+assert_contains "$OUTPUT" "7d" "Test 7: 7d bucket label"
+assert_contains "$OUTPUT" "65%" "Test 7: 7d percentage"
+assert_contains "$OUTPUT" "extra" "Test 7: extra label"
+assert_contains "$OUTPUT" '$12/$50' "Test 7: extra usage"
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -237,7 +321,7 @@ write_usage_cache 40 25 true 4500 5000
 divider
 echo "Test 8: Extra credit nearly exhausted — extra \$45/\$50 (red)"
 echo ""
-echo '
+OUTPUT=$(echo '
 {
   "model": { "display_name": "Sonnet 4.6" },
   "workspace": { "current_dir": "'"$(pwd)"'" },
@@ -248,7 +332,16 @@ echo '
     "used_percentage": 25.0
   }
 }
-' | $BIN
+' | $BIN)
+echo "$OUTPUT"
+assert_contains "$OUTPUT" "Sonnet 4.6" "Test 8: model name"
+assert_contains "$OUTPUT" "50k/200k" "Test 8: context tokens"
+assert_contains "$OUTPUT" "25%" "Test 8: context percentage"
+assert_contains "$OUTPUT" "5h" "Test 8: 5h bucket label"
+assert_contains "$OUTPUT" "40%" "Test 8: 5h percentage"
+assert_contains "$OUTPUT" "7d" "Test 8: 7d bucket label"
+assert_contains "$OUTPUT" "extra" "Test 8: extra label"
+assert_contains "$OUTPUT" '$45/$50' "Test 8: extra usage"
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -258,7 +351,7 @@ write_usage_cache 15 8
 divider
 echo "Test 9: Large context — 1M window"
 echo ""
-echo '
+OUTPUT=$(echo '
 {
   "model": { "display_name": "Opus 4.6 [1m]" },
   "workspace": { "current_dir": "'"$(pwd)"'" },
@@ -269,8 +362,20 @@ echo '
     "used_percentage": 52.3
   }
 }
-' | $BIN
+' | $BIN)
+echo "$OUTPUT"
+assert_contains "$OUTPUT" "Opus 4.6" "Test 9: model name"
+assert_contains "$OUTPUT" "523k/1m" "Test 9: context tokens"
+assert_contains "$OUTPUT" "52%" "Test 9: context percentage"
+assert_contains "$OUTPUT" "5h" "Test 9: 5h bucket label"
+assert_contains "$OUTPUT" "15%" "Test 9: 5h percentage"
+assert_contains "$OUTPUT" "7d" "Test 9: 7d bucket label"
+assert_contains "$OUTPUT" "8%" "Test 9: 7d percentage"
 echo ""
 
 divider
+if [ "$FAILURES" -gt 0 ]; then
+    echo "FAILED: $FAILURES assertion(s) failed"
+    exit 1
+fi
 echo "All tests complete."
