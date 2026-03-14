@@ -20,7 +20,7 @@ Opus 4.6 | @code-reviewer | think:on | my-repo:main +12/-3
 
 ## Prerequisites
 
-- Go 1.25+
+- Go 1.25+ (the `go.mod` version reflects the Nix flake — any Go 1.25+ works)
 - Claude Code with statusline hook support
 
 ## Build & Install
