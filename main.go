@@ -131,8 +131,14 @@ func buildLine1(in *StatusInput) string {
 	if cwd == "" {
 		cwd = in.CWD
 	}
-	if g := gitSegment(cwd); g != "" {
-		s = append(s, g)
+	if hasStarship() {
+		if g := starshipSegment(cwd); g != "" {
+			s = append(s, g)
+		}
+	} else {
+		if g := gitSegment(cwd); g != "" {
+			s = append(s, g)
+		}
 	}
 
 	return strings.Join(s, sep)

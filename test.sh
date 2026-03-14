@@ -373,6 +373,40 @@ assert_contains "$OUTPUT" "7d" "Test 9: 7d bucket label"
 assert_contains "$OUTPUT" "8%" "Test 9: 7d percentage"
 echo ""
 
+# ---------------------------------------------------------------------------
+# Test 10: Starship passthrough (gated — only runs if starship is installed)
+# ---------------------------------------------------------------------------
+if command -v starship &>/dev/null; then
+    write_usage_cache 10 20
+    divider
+    echo "Test 10: Starship passthrough — git segment uses Starship formatting"
+    echo ""
+    OUTPUT=$(echo '
+{
+  "model": { "display_name": "Opus 4.6" },
+  "workspace": { "current_dir": "'"$(pwd)"'" },
+  "context_window": {
+    "total_input_tokens": 42500,
+    "total_output_tokens": 8700,
+    "context_window_size": 200000,
+    "used_percentage": 42.5
+  }
+}
+' | $BIN)
+    echo "$OUTPUT"
+    # Starship replaces repo:branch with its own directory + branch format.
+    # The native "repo:branch" pattern should NOT appear.
+    PLAIN=$(echo "$OUTPUT" | sed 's/\x1b\[[0-9;]*m//g')
+    LINE1=$(echo "$PLAIN" | head -1)
+    REPO_NAME=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")
+    if [[ "$LINE1" == *"${REPO_NAME}:"* ]]; then
+        echo "FAIL: Test 10: native repo:branch format found — Starship should replace it"
+        FAILURES=$((FAILURES + 1))
+    fi
+    # Diff stats should still be present if there are changes.
+    echo ""
+fi
+
 divider
 if [ "$FAILURES" -gt 0 ]; then
     echo "FAILED: $FAILURES assertion(s) failed"
