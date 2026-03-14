@@ -118,7 +118,6 @@ func fetchUsageAPI(token string) (*UsageResponse, int) {
 	}
 
 	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("anthropic-beta", "oauth-2025-04-20")
 	req.Header.Set("User-Agent", "claude-statusline/1.0")
