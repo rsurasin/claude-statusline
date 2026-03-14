@@ -168,6 +168,10 @@ func getOAuthToken() string {
 		return ""
 	}
 	if creds.ClaudeAiOauth != nil && creds.ClaudeAiOauth.AccessToken != "" {
+		if creds.ClaudeAiOauth.ExpiresAt > 0 && time.Now().Unix() >= creds.ClaudeAiOauth.ExpiresAt {
+			debugf("usage: OAuth token expired at %d", creds.ClaudeAiOauth.ExpiresAt)
+			return ""
+		}
 		return creds.ClaudeAiOauth.AccessToken
 	}
 

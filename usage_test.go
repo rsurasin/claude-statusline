@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestFetchUsageAPI(t *testing.T) {
@@ -172,6 +173,50 @@ func TestGetOAuthToken(t *testing.T) {
 		got := getOAuthToken()
 		if got != "file-token-456" {
 			t.Errorf("getOAuthToken() = %q, want %q", got, "file-token-456")
+		}
+	})
+
+	t.Run("expired token in credentials file", func(t *testing.T) {
+		t.Setenv("CLAUDE_CODE_OAUTH_TOKEN", "")
+		configDir := t.TempDir()
+		t.Setenv("CLAUDE_CONFIG_DIR", configDir)
+
+		creds := CredentialsFile{
+			ClaudeAiOauth: &OAuthCreds{
+				AccessToken: "expired-token",
+				ExpiresAt:   time.Now().Unix() - 3600, // expired 1 hour ago
+			},
+		}
+		data, _ := json.Marshal(creds)
+		if err := os.WriteFile(filepath.Join(configDir, ".credentials.json"), data, 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		got := getOAuthToken()
+		if got != "" {
+			t.Errorf("getOAuthToken() = %q, want empty for expired token", got)
+		}
+	})
+
+	t.Run("valid token with future expiry", func(t *testing.T) {
+		t.Setenv("CLAUDE_CODE_OAUTH_TOKEN", "")
+		configDir := t.TempDir()
+		t.Setenv("CLAUDE_CONFIG_DIR", configDir)
+
+		creds := CredentialsFile{
+			ClaudeAiOauth: &OAuthCreds{
+				AccessToken: "valid-token-789",
+				ExpiresAt:   time.Now().Unix() + 3600, // expires in 1 hour
+			},
+		}
+		data, _ := json.Marshal(creds)
+		if err := os.WriteFile(filepath.Join(configDir, ".credentials.json"), data, 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		got := getOAuthToken()
+		if got != "valid-token-789" {
+			t.Errorf("getOAuthToken() = %q, want %q", got, "valid-token-789")
 		}
 	})
 
