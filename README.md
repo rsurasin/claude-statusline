@@ -3,14 +3,13 @@
 A Go binary that renders a custom two-line ANSI statusline for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
 ```
-Opus 4.6 | @code-reviewer | Refactor auth module | think:on | my-repo:main +12/-3
+Opus 4.6 | @code-reviewer | think:on | my-repo:main +12/-3
 43k/200k 42% | 5h ●●○○○ 10% (3h 29m) | 7d ●●●○○ 43% (2d 22h) | extra $5/$50
 ```
 
 ## Features
 
 - **Model & agent** — displays the active model name and subagent (e.g. `@code-reviewer`)
-- **Session name** — shows the session title from stdin JSON, `sessions-index.json`, or the session JSONL transcript
 - **Thinking mode** — `think:on` / `think:off` parsed from the session JSONL
 - **Git info** — `repo:branch +added/-removed` with staged and unstaged diff stats
 - **Context window** — `43k/200k 42%` with color-coded utilization (green/yellow/red)
@@ -47,7 +46,7 @@ Add the following to `~/.claude/settings.json`:
 
 ## How It Works
 
-Claude Code invokes the statusline command with a JSON payload on stdin containing session metadata, model info, workspace paths, and context window stats. The binary parses this input, gathers git status from the working directory, fetches rate-limit data from the Anthropic usage API (via OAuth token), and outputs two lines of ANSI-colored text.
+Claude Code invokes the statusline command with a JSON payload on stdin containing model info, workspace paths, and context window stats. The binary parses this input, gathers git status from the working directory, fetches rate-limit data from the Anthropic usage API (via OAuth token), and outputs two lines of ANSI-colored text.
 
 ## Testing
 

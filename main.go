@@ -3,7 +3,7 @@
 // It reads a JSON payload from stdin (provided by Claude Code's statusline hook),
 // and outputs two lines of ANSI-colored text:
 //
-//   - Line 1: model | @agent | session | think:on | repo:branch +N/-N
+//   - Line 1: model | @agent | think:on | repo:branch +N/-N
 //   - Line 2: 43k/200k 42% | 5h ●●●○○ 10% (3h 29m) | 7d ●●○○○ 43% (2d 22h) | extra $5/$50
 package main
 
@@ -33,7 +33,6 @@ const (
 // StatusInput is the JSON payload received from Claude Code via stdin.
 type StatusInput struct {
 	SessionID      string        `json:"session_id"`
-	SessionName    string        `json:"session_name"`
 	CWD            string        `json:"cwd"`
 	Model          Model         `json:"model"`
 	Agent          *Agent        `json:"agent"`
@@ -100,7 +99,7 @@ func main() {
 }
 
 // buildLine1 renders the top statusline:
-// model | @agent | session | think:on | repo:branch +N/-N
+// model | @agent | think:on | repo:branch +N/-N
 func buildLine1(in *StatusInput) string {
 	sep := dim + " | " + reset
 	var s []string
@@ -112,15 +111,6 @@ func buildLine1(in *StatusInput) string {
 	// Subagent name (only shown when a subagent is active).
 	if in.Agent != nil && in.Agent.Name != "" {
 		s = append(s, magenta+"@"+in.Agent.Name+reset)
-	}
-
-	// Session name: prefer stdin JSON field, fall back to sessions-index.json.
-	name := in.SessionName
-	if name == "" {
-		name = lookupSessionName(in)
-	}
-	if name != "" {
-		s = append(s, blue+name+reset)
 	}
 
 	if ts := thinkingSegment(in); ts != "" {

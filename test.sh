@@ -105,12 +105,11 @@ trap cleanup EXIT
 write_usage_cache 10 43
 divider
 echo "Test 1: Full payload"
-echo "Expected L1: Opus 4.6 | @code-reviewer | Refactor auth module | [think/effort from your settings] | repo:branch +N/-N"
+echo "Expected L1: Opus 4.6 | @code-reviewer | [think/effort from your settings] | repo:branch +N/-N"
 echo "Expected L2: 85k/200k 42% | 5h ●○○○○ 10% (3h 29m) | 7d ●●○○○ 43% (2d 22h)"
 echo ""
 OUTPUT=$(echo '
 {
-  "session_name": "Refactor auth module",
   "model": { "display_name": "Opus 4.6" },
   "agent": { "name": "code-reviewer" },
   "workspace": { "current_dir": "'"$(pwd)"'" },
@@ -125,7 +124,6 @@ OUTPUT=$(echo '
 echo "$OUTPUT"
 assert_contains "$OUTPUT" "Opus 4.6" "Test 1: model name"
 assert_contains "$OUTPUT" "@code-reviewer" "Test 1: agent"
-assert_contains "$OUTPUT" "Refactor auth module" "Test 1: session name"
 assert_contains "$OUTPUT" "85k/200k" "Test 1: context tokens"
 assert_contains "$OUTPUT" "42%" "Test 1: context percentage"
 assert_contains "$OUTPUT" "5h" "Test 1: 5h bucket label"
@@ -175,7 +173,6 @@ echo ""
 OUTPUT=$(echo '
 {
   "model": { "display_name": "Opus 4.6" },
-  "session_name": "Debug payment flow",
   "workspace": { "current_dir": "'"$(pwd)"'" },
   "context_window": {
     "total_input_tokens": 170000,
@@ -187,7 +184,6 @@ OUTPUT=$(echo '
 ' | $BIN)
 echo "$OUTPUT"
 assert_contains "$OUTPUT" "Opus 4.6" "Test 3: model name"
-assert_contains "$OUTPUT" "Debug payment flow" "Test 3: session name"
 assert_contains "$OUTPUT" "170k/200k" "Test 3: context tokens"
 assert_contains "$OUTPUT" "85%" "Test 3: context percentage"
 assert_contains "$OUTPUT" "5h" "Test 3: 5h bucket label"
@@ -292,7 +288,6 @@ echo ""
 OUTPUT=$(echo '
 {
   "model": { "display_name": "Opus 4.6" },
-  "session_name": "Long refactor session",
   "workspace": { "current_dir": "'"$(pwd)"'" },
   "context_window": {
     "total_input_tokens": 180000,
@@ -304,7 +299,6 @@ OUTPUT=$(echo '
 ' | $BIN)
 echo "$OUTPUT"
 assert_contains "$OUTPUT" "Opus 4.6" "Test 7: model name"
-assert_contains "$OUTPUT" "Long refactor session" "Test 7: session name"
 assert_contains "$OUTPUT" "180k/200k" "Test 7: context tokens"
 assert_contains "$OUTPUT" "90%" "Test 7: context percentage"
 assert_contains "$OUTPUT" "5h" "Test 7: 5h bucket label"

@@ -12,7 +12,6 @@ import (
 // JournalEntry is a single line from the session JSONL transcript.
 type JournalEntry struct {
 	Type             string            `json:"type"`
-	CustomTitle      string            `json:"customTitle"`
 	ThinkingMetadata *ThinkingMetadata `json:"thinkingMetadata"`
 }
 
