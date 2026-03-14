@@ -159,9 +159,9 @@ func TestLookupThinkingCached(t *testing.T) {
 	}
 
 	// Verify cache file was written.
-	cacheFile := filepath.Join(cacheDir, "thinking.json")
-	if _, err := os.Stat(cacheFile); err != nil {
-		t.Errorf("cache file not created: %v", err)
+	matches, _ := filepath.Glob(filepath.Join(cacheDir, "thinking-*.json"))
+	if len(matches) == 0 {
+		t.Error("cache file not created")
 	}
 
 	// Second call: should hit cache (even if we delete the JSONL).

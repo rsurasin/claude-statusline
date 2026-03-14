@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,6 +15,13 @@ func debugf(format string, args ...any) {
 	if debugMode {
 		fmt.Fprintf(os.Stderr, "statusline: "+format+"\n", args...)
 	}
+}
+
+// shortHash returns the first 8 hex characters of the SHA-256 of s.
+// Used to give each unique key (CWD, session ID) its own cache file.
+func shortHash(s string) string {
+	h := sha256.Sum256([]byte(s))
+	return hex.EncodeToString(h[:])[:8]
 }
 
 const (

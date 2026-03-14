@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -23,9 +24,8 @@ type ThinkingMetadata struct {
 
 // ThinkingCache is the file-based cache for the thinking mode lookup.
 type ThinkingCache struct {
-	FetchedAt int64  `json:"fetched_at"`
-	SessionID string `json:"session_id"`
-	ThinkOn   bool   `json:"think_on"`
+	FetchedAt int64 `json:"fetched_at"`
+	ThinkOn   bool  `json:"think_on"`
 }
 
 // thinkingSegment returns "think:on" or "think:off" based on the session JSONL.
@@ -46,14 +46,14 @@ func lookupThinkingCached(in *StatusInput) (on bool, ok bool) {
 		return false, false
 	}
 
-	cacheFile := filepath.Join(cacheDir, "thinking.json")
+	cacheFile := filepath.Join(cacheDir, fmt.Sprintf("thinking-%s.json", shortHash(in.SessionID)))
 	const thinkingCacheTTL = 10
 
 	if data, err := os.ReadFile(cacheFile); err == nil {
 		var cache ThinkingCache
 		if json.Unmarshal(data, &cache) == nil {
 			age := time.Now().Unix() - cache.FetchedAt
-			if age < int64(thinkingCacheTTL) && cache.SessionID == in.SessionID {
+			if age < int64(thinkingCacheTTL) {
 				return cache.ThinkOn, true
 			}
 		}
@@ -67,7 +67,6 @@ func lookupThinkingCached(in *StatusInput) (on bool, ok bool) {
 
 	cache := ThinkingCache{
 		FetchedAt: time.Now().Unix(),
-		SessionID: in.SessionID,
 		ThinkOn:   thinkOn,
 	}
 	if data, err := json.Marshal(&cache); err == nil {

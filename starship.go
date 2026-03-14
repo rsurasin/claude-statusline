@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -30,13 +28,6 @@ func hasStarship() bool {
 	return starshipAvailable
 }
 
-// cwdHash returns the first 8 hex characters of the SHA-256 of cwd,
-// used to give each working directory its own cache file.
-func cwdHash(cwd string) string {
-	h := sha256.Sum256([]byte(cwd))
-	return hex.EncodeToString(h[:])[:8]
-}
-
 // starshipCache is the file-based cache for a single Starship module output.
 type starshipCache struct {
 	FetchedAt int64  `json:"fetched_at"`
@@ -52,7 +43,7 @@ func starshipModule(name, cwd string) string {
 		return ""
 	}
 
-	cacheFile := filepath.Join(cacheDir, fmt.Sprintf("starship-%s-%s.json", name, cwdHash(cwd)))
+	cacheFile := filepath.Join(cacheDir, fmt.Sprintf("starship-%s-%s.json", name, shortHash(cwd)))
 
 	// Check cache.
 	if data, err := os.ReadFile(cacheFile); err == nil {
