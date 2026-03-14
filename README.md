@@ -59,4 +59,6 @@ Runs `test.sh`, which pipes mock JSON payloads into the binary with various usag
 
 ## Acknowledgments
 
+This project was originally inspired by [ClaudeCodeStatusLine](https://github.com/daniel3303/ClaudeCodeStatusLine) by [@daniel3303](https://github.com/daniel3303), which served as the foundation for the initial ideas.
+
 The Starship passthrough feature was inspired by [cship](https://github.com/stephenleo/cship) by [@stephenleo](https://github.com/stephenleo). His repo served as a reference for how to integrate Starship prompt modules into the Claude Code statusline. Thanks for the idea and the code to learn from.
