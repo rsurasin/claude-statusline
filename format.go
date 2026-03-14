@@ -107,6 +107,35 @@ func usageBucketSegment(label string, bucket *UsageBucket, weekly bool, fillColo
 	return seg
 }
 
+// extraCreditSegment renders the extra credit segment: "extra $12/$50".
+// Returns "" if extra credit is not active or used is zero.
+func extraCreditSegment(extra *ExtraUsage) string {
+	if extra == nil || !extra.IsEnabled ||
+		extra.UsedCredits == nil || extra.MonthlyLimit == nil {
+		return ""
+	}
+	used := *extra.UsedCredits / 100   // cents -> dollars
+	limit := *extra.MonthlyLimit / 100 // cents -> dollars
+
+	if used <= 0 {
+		return ""
+	}
+
+	color := green
+	pct := 0.0
+	if limit > 0 {
+		pct = (used / limit) * 100
+	}
+	switch {
+	case pct >= 80:
+		color = red
+	case pct >= 50:
+		color = yellow
+	}
+
+	return fmt.Sprintf("extra %s$%.0f/$%.0f%s", color+bold, used, limit, reset)
+}
+
 // timeUntilReset parses an ISO 8601 timestamp and returns a compact duration.
 // 5-hour buckets: "3h 29m"  |  7-day buckets: "2d 22h"
 func timeUntilReset(isoStr string, weekly bool) string {

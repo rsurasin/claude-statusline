@@ -187,3 +187,63 @@ func TestTimeUntilReset(t *testing.T) {
 		}
 	})
 }
+
+func TestExtraCreditSegment(t *testing.T) {
+	f := func(v float64) *float64 { return &v }
+
+	tests := []struct {
+		name      string
+		extra     *ExtraUsage
+		wantPlain string
+		wantColor string // empty means don't check
+	}{
+		{
+			name:      "$12/$50 green",
+			extra:     &ExtraUsage{IsEnabled: true, UsedCredits: f(1200), MonthlyLimit: f(5000)},
+			wantPlain: "extra $12/$50",
+			wantColor: green,
+		},
+		{
+			name:      "$45/$50 red",
+			extra:     &ExtraUsage{IsEnabled: true, UsedCredits: f(4500), MonthlyLimit: f(5000)},
+			wantPlain: "extra $45/$50",
+			wantColor: red,
+		},
+		{
+			name:      "$0 used suppressed",
+			extra:     &ExtraUsage{IsEnabled: true, UsedCredits: f(0), MonthlyLimit: f(5000)},
+			wantPlain: "",
+		},
+		{
+			name:      "sub-dollar rounds up",
+			extra:     &ExtraUsage{IsEnabled: true, UsedCredits: f(99), MonthlyLimit: f(5000)},
+			wantPlain: "extra $1/$50",
+			wantColor: green,
+		},
+		{
+			name:      "not enabled",
+			extra:     nil,
+			wantPlain: "",
+		},
+		{
+			name:      "enabled but nil credits",
+			extra:     &ExtraUsage{IsEnabled: true, UsedCredits: nil, MonthlyLimit: nil},
+			wantPlain: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := extraCreditSegment(tt.extra)
+			plain := stripANSI(got)
+
+			if plain != tt.wantPlain {
+				t.Errorf("extraCreditSegment() plain = %q, want %q", plain, tt.wantPlain)
+			}
+
+			if tt.wantColor != "" && !strings.Contains(got, tt.wantColor) {
+				t.Errorf("extraCreditSegment() missing expected color code %q", tt.wantColor)
+			}
+		})
+	}
+}

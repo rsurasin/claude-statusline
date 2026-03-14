@@ -153,28 +153,8 @@ func buildLine2(in *StatusInput) string {
 			s = append(s, usageBucketSegment("7d", usage.SevenDay, true, blue))
 		}
 
-		// Show $used/$limit when actively consuming extra credit.
-		if usage.ExtraUsage != nil && usage.ExtraUsage.IsEnabled &&
-			usage.ExtraUsage.UsedCredits != nil && usage.ExtraUsage.MonthlyLimit != nil {
-			used := *usage.ExtraUsage.UsedCredits / 100   // cents -> dollars
-			limit := *usage.ExtraUsage.MonthlyLimit / 100 // cents -> dollars
-
-			color := green
-			pct := 0.0
-			if limit > 0 {
-				pct = (used / limit) * 100
-			}
-			switch {
-			case pct >= 80:
-				color = red
-			case pct >= 50:
-				color = yellow
-			}
-
-			if used > 0 {
-				s = append(s, fmt.Sprintf("extra %s$%.0f/$%.0f%s",
-					color+bold, used, limit, reset))
-			}
+		if seg := extraCreditSegment(usage.ExtraUsage); seg != "" {
+			s = append(s, seg)
 		}
 	}
 
