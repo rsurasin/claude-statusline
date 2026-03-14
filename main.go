@@ -105,7 +105,7 @@ func buildLine1(in *StatusInput) string {
 	var s []string
 
 	if name := in.Model.DisplayName; name != "" {
-		s = append(s, bold+cyan+name+reset)
+		s = append(s, bold+blue+name+reset)
 	}
 
 	// Subagent name (only shown when a subagent is active).
