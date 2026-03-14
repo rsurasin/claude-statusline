@@ -93,8 +93,8 @@ func TestStarshipModuleCaching(t *testing.T) {
 	dir := initTestRepo(t)
 	_ = starshipModule("directory", dir)
 
-	cacheFile := filepath.Join(cacheDir, "starship-directory.json")
-	if _, err := os.Stat(cacheFile); os.IsNotExist(err) {
+	matches, _ := filepath.Glob(filepath.Join(cacheDir, "starship-directory-*.json"))
+	if len(matches) == 0 {
 		t.Error("cache file was not created")
 	}
 }

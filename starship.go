@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -27,10 +30,16 @@ func hasStarship() bool {
 	return starshipAvailable
 }
 
+// cwdHash returns the first 8 hex characters of the SHA-256 of cwd,
+// used to give each working directory its own cache file.
+func cwdHash(cwd string) string {
+	h := sha256.Sum256([]byte(cwd))
+	return hex.EncodeToString(h[:])[:8]
+}
+
 // starshipCache is the file-based cache for a single Starship module output.
 type starshipCache struct {
 	FetchedAt int64  `json:"fetched_at"`
-	CWD       string `json:"cwd"`
 	Output    string `json:"output"`
 }
 
@@ -43,14 +52,14 @@ func starshipModule(name, cwd string) string {
 		return ""
 	}
 
-	cacheFile := filepath.Join(cacheDir, "starship-"+name+".json")
+	cacheFile := filepath.Join(cacheDir, fmt.Sprintf("starship-%s-%s.json", name, cwdHash(cwd)))
 
 	// Check cache.
 	if data, err := os.ReadFile(cacheFile); err == nil {
 		var cache starshipCache
 		if json.Unmarshal(data, &cache) == nil {
 			age := time.Now().Unix() - cache.FetchedAt
-			if age < int64(starshipCacheTTL) && cache.CWD == cwd {
+			if age < int64(starshipCacheTTL) {
 				return cache.Output
 			}
 		}
@@ -76,7 +85,6 @@ func starshipModule(name, cwd string) string {
 	// Write cache.
 	cache := starshipCache{
 		FetchedAt: time.Now().Unix(),
-		CWD:       cwd,
 		Output:    result,
 	}
 	if data, err := json.Marshal(&cache); err == nil {
