@@ -106,7 +106,7 @@ write_usage_cache 10 43
 divider
 echo "Test 1: Full payload"
 echo "Expected L1: Opus 4.6 | @code-reviewer | [think/effort from your settings] | repo:branch +N/-N"
-echo "Expected L2: 85k/200k 42% | 5h ●○○○○ 10% (3h 29m) | 7d ●●○○○ 43% (2d 22h)"
+echo "Expected L2: 85k/200k 43% | 5h ●○○○○ 10% (3h 29m) | 7d ●●○○○ 43% (2d 22h)"
 echo ""
 OUTPUT=$(echo '
 {
@@ -125,7 +125,7 @@ echo "$OUTPUT"
 assert_contains "$OUTPUT" "Opus 4.6" "Test 1: model name"
 assert_contains "$OUTPUT" "@code-reviewer" "Test 1: agent"
 assert_contains "$OUTPUT" "85k/200k" "Test 1: context tokens"
-assert_contains "$OUTPUT" "42%" "Test 1: context percentage"
+assert_contains "$OUTPUT" "43%" "Test 1: context percentage"
 assert_contains "$OUTPUT" "5h" "Test 1: 5h bucket label"
 assert_contains "$OUTPUT" "10%" "Test 1: 5h percentage"
 assert_contains "$OUTPUT" "7d" "Test 1: 7d bucket label"
@@ -272,7 +272,7 @@ OUTPUT=$(echo '
 echo "$OUTPUT"
 assert_contains "$OUTPUT" "Haiku 4.5" "Test 6: model name"
 assert_contains "$OUTPUT" "3k/200k" "Test 6: context tokens"
-assert_contains "$OUTPUT" "1%" "Test 6: context percentage"
+assert_contains "$OUTPUT" "2%" "Test 6: context percentage"
 assert_contains "$OUTPUT" "5h" "Test 6: 5h bucket label"
 assert_contains "$OUTPUT" "20%" "Test 6: 5h percentage"
 assert_contains "$OUTPUT" "7d" "Test 6: 7d bucket label"

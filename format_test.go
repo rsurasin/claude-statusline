@@ -62,6 +62,12 @@ func TestContextSegment(t *testing.T) {
 			wantColor: yellow,
 		},
 		{
+			name:      "0.75% rounds to 1%",
+			ctx:       ContextWindow{ContextWindowSize: 200000, UsedPercentage: 0.75},
+			wantPct:   "1%",
+			wantColor: green,
+		},
+		{
 			name:      "85% red",
 			ctx:       ContextWindow{ContextWindowSize: 200000, UsedPercentage: 85},
 			wantPct:   "85%",

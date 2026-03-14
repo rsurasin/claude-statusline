@@ -17,7 +17,7 @@ func contextSegment(ctx *ContextWindow) string {
 	// the displayed "Nk/Nk N%" self-consistent.
 	used := int(float64(ctx.ContextWindowSize) * ctx.UsedPercentage / 100)
 	total := ctx.ContextWindowSize
-	pct := int(ctx.UsedPercentage)
+	pct := int(math.Round(ctx.UsedPercentage))
 
 	color := green
 	switch {
