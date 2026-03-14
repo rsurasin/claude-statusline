@@ -56,3 +56,7 @@ make test
 ```
 
 Runs `test.sh`, which pipes mock JSON payloads into the binary with various usage scenarios (low/mid/high utilization, extra credit, non-git directories, large context windows).
+
+## Acknowledgments
+
+The Starship passthrough feature was inspired by [cship](https://github.com/stephenleo/cship) by [@stephenleo](https://github.com/stephenleo). His repo served as a reference for how to integrate Starship prompt modules into the Claude Code statusline. Thanks for the idea and the code to learn from.
